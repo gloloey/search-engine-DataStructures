@@ -11,14 +11,11 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> { // imp
      * @param <Key>
      * @param <Value>
      */
-    //
-    //public class HashTable<Key, Value> {//static?
         private class Entry<Key, Value> {
             Key key;
             Value value;
             Entry<Key, Value> next;
 
-//"se usassi piazza finiresti molto prima"
             private Entry(Key k, Value v) {//private?
                 if (k == null) {
                     throw new IllegalArgumentException();
@@ -27,7 +24,6 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> { // imp
                 value = v;
                 next = null;
             }
-        // Override the equals method to compare keys
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {
@@ -43,11 +39,11 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> { // imp
         private Entry<?, ?>[] table;
         public HashTableImpl() {
             this.misura = 1;
-            this.table = new Entry[this.misura]; //array of heads !!!
+            this.table = new Entry[this.misura]; 
         }
         private int hashFunction(Key key) {
 
-            return (key.hashCode() & 0x7fffffff) % this.misura;//giusto?
+            return (key.hashCode() & 0x7fffffff) % this.misura;
         }
         private int misura;
         private void resize (){
@@ -55,12 +51,6 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> { // imp
             int newSize = oldSize * 2;
             this.misura = newSize;
             Entry<?, ?>[] newTable = new Entry[this.misura];
-            // Iterate through the old table and rehash each entry into the new table
-            /*for (Key k : keySet()){
-                Value v = get(k);
-                put(k,v); //sbagliatissimo (x la undo thing)
-
-             */
             for (Entry<?, ?> head : this.table) {
                 Entry<Key, Value> current = (Entry<Key, Value>) head;
                 while (current != null) {
@@ -68,7 +58,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> { // imp
                     Entry<Key, Value> newHead = (Entry<Key, Value>) newTable[index];
                     if (newHead == null) {
                         newTable[index] = current;
-                        current = current.next;//giusto?
+                        current = current.next;
                         continue;
                     }
                     while (newHead != null) {
@@ -80,8 +70,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> { // imp
             }
             this.table = newTable;
         }
-        //
-        // ORA SCRIVO I PUBLIC METHODS X LA HASHTABLE
+
         /**
          * @param k the key whose value should be returned
          * @return the value that is stored in the HashTable for k, or null if there is no such key in the table
@@ -104,18 +93,14 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> { // imp
          *          To delete an entry, put a null value.
          * @return if the key was already present in the HashTable, return the previous value stored for the key. If the key was not already present, return null.
          */
-        public Value put(Key k, Value v) { //if I dont find a match of the key do I also have to add the Entry to the hashtable or just return null? I think its obvious because otherwise it would have been 'set', not 'put'.
-            if (size() >= this.misura * 0.75 && v != null) { //a caso (check)
-                resize();//errore trovato, capisci come capire gli errori!!!
+        public Value put(Key k, Value v) {
+            if (size() >= this.misura * 0.75 && v != null) { 
+                resize();
             }
             int index = this.hashFunction(k);
-            Entry<Key, Value> newData = new Entry<>(k, v);//e se facessi un try -> catch index out of bounds?
+            Entry<Key, Value> newData = new Entry<>(k, v);
             Entry<Key, Value> head = (Entry<Key, Value>) this.table[index];
-            //System.out.println("array -->" + this.misura);
-            //System.out.println("quantita -->" + size());
-            //System.out.println(size());
             if (head == null) {
-                //System.out.println("papaya");
                 this.table[index] = newData;
                 return null;
             }
