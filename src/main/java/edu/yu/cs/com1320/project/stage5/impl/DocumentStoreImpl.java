@@ -18,7 +18,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 
-//lechura
 public class DocumentStoreImpl implements DocumentStore {
     private int maxDocCount = 0;
     private int maxDocBytes = 0;
@@ -91,7 +90,7 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return if there is no previous doc at the given URI, return 0. If there is a previous doc, return the hashCode of the previous doc.
      * If InputStream is null, this is a delete, and thus return either the hashCode of the deleted doc or 0 if there is no doc to delete.
      * @throws IOException              if there is an issue reading input
-     * @throws IllegalArgumentException if uri is null or empty, or format is null          input string -->  a byte array \\ string
+     * @throws IllegalArgumentException if uri is null or empty, or format is null
      */
     @Override
     public int put(InputStream input, URI uri, DocumentFormat format) throws IOException {
@@ -107,24 +106,20 @@ public class DocumentStoreImpl implements DocumentStore {
             DocumentImpl doc;
             if (format == DocumentFormat.TXT) {
                 String str = new String(array);
-                doc = new DocumentImpl(uri, str); // cambia tuttti gli altri constructiors a docIMPL
-                //STAGE 4 add
+                doc = new DocumentImpl(uri, str);
                 for (String word : doc.getWords()) {
                     myTrie.put(word, doc);
                 }
             } else {
-                doc = new DocumentImpl(uri, array);//what?? chiedi e controlla se da problemi in stage 2
+                doc = new DocumentImpl(uri, array);
             }
             Document oldValue = hashTable1.get(uri);
             hashTable1.put(uri, doc);
-            //STAGE 5 add:
-            //Im gonna put it in the heap and then Im gonna make the dos's timer start and then im gonna reheapify
+            //Im gonna put it in the heap, then Im gonna make the dos's timer start, and only then im gonna reheapify
             myHeap.insert(doc);
             refreshDocTimer(doc);
             myHeap.reHeapify(doc);
-            //call the police
             docPolice();
-
             if (oldValue == null) {
                 return 0;
             } else{
@@ -150,27 +145,20 @@ public class DocumentStoreImpl implements DocumentStore {
         Document old = hashTable1.get(uri);
         if (input != null) { //if its not a delete
             // Lambda for undoing a put command
-            if (old != null) {//if before there was an old document (allora passa old)
+            if (old != null) {//if before there was an old document
                 this.myStack.push(new GenericCommand<>(uri, target -> {
-                    this.hashTable1.put(target, old); //change old/null
-                    //stage 4
-                    //should I change something in the heap? or should I modify the undo method directly? (and thus change the delete method)
+                    this.hashTable1.put(target, old); 
                     for (String word : old.getWords()) {
                         myTrie.put(word, old);
                     };
                 }));
-            } else { //cancella tutto questo else (no, perche non so come metterlo nel Trie se no) --> "se non c'era niente prima di lui" (allora passa null)
+            } else {
                 this.myStack.push(new GenericCommand<>(uri, target -> {
-                    this.hashTable1.put(target, null); //change old/null
-                    //stage 4
-                    //something
-                    //for (String word : old.getWords()) {
-                    //    myTrie.put(word, old);
-                    //};
+                    this.hashTable1.put(target, null);
                 }));
             }
-        }else if (input == null) { //its a delete!!
-            if (hashTable1.get(uri) == null) {//?
+        }else if (input == null) { 
+            if (hashTable1.get(uri) == null) {
                 delete(uri);
                 return 0;
             }else{
@@ -184,11 +172,9 @@ public class DocumentStoreImpl implements DocumentStore {
             if (values != null && values.contains(doc)) {
                 Comparator<Document> myComp = new myComparator(word);
                 List<Document> myList = myTrie.getAllWithPrefixSorted(word, myComp);
-                //se il node ha figli """"oppure"""" il documento cancellato NON e` lunico documento presente
                 if (myTrie.get(word).size() < myList.size() || myTrie.get(word).size() > 1) {
                     myTrie.delete(word, doc);
-                    //what if u call the cleaner also here 'just in case' ? not a good idea because of the figli
-                } else {    // se il node non ha figli (e` lultimo) """OPPURE""" cancellando quel documneto non ci sono piu documenti dentro al nodo!!
+                } else {
                     myTrie.delete(word, doc);
                     cleaner(word);
                 }
@@ -213,7 +199,6 @@ public class DocumentStoreImpl implements DocumentStore {
     @Override
     public Document get(URI url) {//remember timer start or RE-start non cambia un cavolo
         if(hashTable1.get(url) != null) {
-            //STAGE 5 add: Im gonna make the docs timer RE-start and then im gonna reheapify
             refreshDocTimer(hashTable1.get(url));
             myHeap.reHeapify(hashTable1.get(url));
         }
@@ -269,7 +254,7 @@ public class DocumentStoreImpl implements DocumentStore {
             throw new IllegalStateException();
         }
         Undoable lastCommand = myStack.pop();
-        if (lastCommand instanceof GenericCommand<?>) { //cosa cavolo metto qua????
+        if (lastCommand instanceof GenericCommand<?>) {
             GenericCommand<?> mioCommand = (GenericCommand<?>) lastCommand;
             mioCommand.undo();
 
@@ -278,9 +263,7 @@ public class DocumentStoreImpl implements DocumentStore {
         } else {
             throw new IllegalStateException();
         }
-        //POLICEEEE
         docPolice();
-        //check if u r doing a generic or command set    generic - undo ,,, set - undoall
     }
 
     /**
@@ -288,7 +271,7 @@ public class DocumentStoreImpl implements DocumentStore {
      * @param url
      * @throws IllegalStateException if there are no actions on the command stack for the given URI
      */
-    public void undo(URI url) throws IllegalStateException { // usa target per trovare (contains target gettarget) il uri del command che stai cercando di undoare
+    public void undo(URI url) throws IllegalStateException {
         if (myStack.size() == 0) {
             throw new IllegalStateException();
         }
@@ -296,10 +279,9 @@ public class DocumentStoreImpl implements DocumentStore {
         StackImpl<Undoable> tempStack = new StackImpl<>();
         Undoable lastCommand = myStack.peek();
 
-        //tempStack.push(lastCommand);
         for (int i = 0; i < myStack.size(); ) {
             lastCommand = myStack.pop();
-            if (lastCommand instanceof GenericCommand<?>) { // "?"
+            if (lastCommand instanceof GenericCommand<?>) {
                 GenericCommand myCommand = (GenericCommand) lastCommand;
                 if (myCommand.getTarget().equals(url)) {
                     break;
@@ -323,21 +305,18 @@ public class DocumentStoreImpl implements DocumentStore {
             throw new IllegalStateException();
         }
 
-        //lastCommand.undo();
-        if (lastCommand instanceof GenericCommand<?>) { //cosa cavolo metto qua????
+        if (lastCommand instanceof GenericCommand<?>) {
             lastCommand.undo();
         } else if (lastCommand instanceof CommandSet<?>) {
             ((CommandSet<?>) lastCommand).undoAll();
         } else {
             throw new IllegalStateException();
         }
-        //
 
         while (tempStack.size() != 0) {
             Undoable theComm = tempStack.pop();
             myStack.push(theComm);
         }
-        //no crimes under my roof
         docPolice();
     }
 
@@ -364,8 +343,7 @@ public class DocumentStoreImpl implements DocumentStore {
         }
     }
 
-    //**********STAGE 4 ADDITIONS
-
+    
     /**
      * Retrieve all documents whose text contains the given keyword.
      * Documents are returned in sorted, descending order, sorted by the number of times the keyword appears in the document.
@@ -379,7 +357,6 @@ public class DocumentStoreImpl implements DocumentStore {
         long tempo = System.nanoTime();
         for (Document doc : listOfDocs) {
             if (doc != null) {
-                //STAGE 5 add: Im gonna make the docs timer RE-start and then im gonna reheapify
                 doc.setLastUseTime(tempo);
                 myHeap.reHeapify(doc);
             }
@@ -472,7 +449,6 @@ public class DocumentStoreImpl implements DocumentStore {
             for (Map.Entry<String, String> entry : keysValues.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                //la mia aggiunta
                 if (document.getMetadataValue(key) == null) {
                     matches = false;
                     break;
@@ -493,7 +469,6 @@ public class DocumentStoreImpl implements DocumentStore {
         long tempo = System.nanoTime();
         for (Document doc : matchingDocuments) {
             if (doc != null) {
-                //STAGE 5 add: Im gonna make the docs timer RE-start and then im gonna reheapify
                 doc.setLastUseTime(tempo);
                 myHeap.reHeapify(doc);
             }
@@ -541,7 +516,6 @@ public class DocumentStoreImpl implements DocumentStore {
         long tempo = System.nanoTime();
         for (Document doc : matchingDocuments) {
             if (doc != null) {
-                //STAGE 5 add: Im gonna make the docs timer RE-start and then im gonna reheapify
                 doc.setLastUseTime(tempo);
                 myHeap.reHeapify(doc);
             }
@@ -588,7 +562,6 @@ public class DocumentStoreImpl implements DocumentStore {
         long tempo = System.nanoTime();
         for (Document doc : matchingDocuments) {
             if (doc != null) {
-                //STAGE 5 add: Im gonna make the docs timer RE-start and then im gonna reheapify
                 doc.setLastUseTime(tempo);
                 myHeap.reHeapify(doc);
             }
@@ -624,7 +597,7 @@ public class DocumentStoreImpl implements DocumentStore {
 
             // If all key-value pairs match, delete the document
             if (metadataMatches) {
-                delete(uri); // Assuming delete(URI uri) deletes the document
+                delete(uri);
                 deletedURIs.add(uri);
             }
         }
@@ -664,7 +637,7 @@ public class DocumentStoreImpl implements DocumentStore {
 
                 // If all conditions are satisfied, delete the document
                 if (metadataMatches) {
-                    delete(uri); // Assuming delete(URI uri) deletes the document
+                    delete(uri);
                     deletedURIs.add(uri);
                 }
             }
@@ -706,7 +679,7 @@ public class DocumentStoreImpl implements DocumentStore {
 
                 // If all conditions are satisfied, delete the document
                 if (metadataMatches) {
-                    delete(uri); // Assuming delete(URI uri) deletes the document
+                    delete(uri);
                     deletedURIs.add(uri);
                 }
             }
@@ -751,22 +724,16 @@ public class DocumentStoreImpl implements DocumentStore {
         for (URI k : hashTable1.keySet()) {
             allDocs.add(hashTable1.get(k));
         }
-        //ho ottunuto una lista di tutti i documenti in docStore
 
         int totCount = allDocs.size();
-        //CHECKING THE COUNT
-        //"attenzione che qua devi mettere maggiore ma in put devi mettere >= mentre in undo MI SA che devi mettere > ... +1 "!!!
         if(totCount > newLimit) {
-            while (totCount > newLimit) { // to check
-                //ottieni il documento
+            while (totCount > newLimit) {
                 Document doc = myHeap.peek();
                 if (doc == null) {
                     continue;
                 }
-                //lo togli dal hashtable e dal Trie (con un solo comando) e poi togli il relativo comando dallo stack si toglie dal heap da solo!!!
                 delete(doc.getKey());
                 myStack.pop();
-                //diminuisci totCount del doc che hai appena tolto
                 totCount -= 1;
             }
         }
@@ -776,9 +743,6 @@ public class DocumentStoreImpl implements DocumentStore {
         for (URI k : hashTable1.keySet()) {
             allDocs.add(hashTable1.get(k));
         }
-        //ho ottunuto una lista di tutti i documenti in docStore
-
-        //ora ottieni una sommatoria totale di tutti i bytes dei doc nella lista
         int totBytes = 0;
         for (Document d : allDocs) {
             String docTxt = d.getDocumentTxt();
@@ -791,21 +755,15 @@ public class DocumentStoreImpl implements DocumentStore {
                 totBytes += array1.length;
             }
         }
-        //ho ottenuto il totale dei bytes in docstore
 
-        //CHECKING THE BYTES
-        //"attenzione che qua devi mettere maggiore ma in put devi mettere >= mentre in undo MI SA che devi mettere > ... +1 "!!!
         if(totBytes > newLimit) {
-            while (totBytes > newLimit) { // to check
-                //ottieni il documento
+            while (totBytes > newLimit) {
                 Document doc = myHeap.peek();
                 if (doc == null) {
                     continue;
                 }
-                //lo togli dal hashtable e dal Trie (con un solo comando) e poi togli il relativo comando dallo stack, chiamando delete di toglie da solo dal heap
                 delete(doc.getKey());
                 myStack.pop();
-                //sottrai il documento che hai appena tolto a totBytes
                 String docTxt = doc.getDocumentTxt();
                 if (docTxt != null) {
                     byte[] array = docTxt.getBytes();
