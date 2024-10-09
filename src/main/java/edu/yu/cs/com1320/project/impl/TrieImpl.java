@@ -13,7 +13,7 @@ public class TrieImpl<Value> implements Trie<Value> {
     }
     private class Node<Value> {
         private Set<Value> values;
-        private Node[] children;;//[TrieImpl.alphabetSize]
+        private Node[] children;
         private Node() {
             this.values = new HashSet<>();
             this.children = new Node[TrieImpl.alphabetSize];
@@ -26,7 +26,6 @@ public class TrieImpl<Value> implements Trie<Value> {
      * @param key
      * @param val
      */
-    //private int d = 0;
     @Override
     public void put(String key, Value val) {
         if (!(key == null || val == null || key.isEmpty())) {
@@ -38,12 +37,10 @@ public class TrieImpl<Value> implements Trie<Value> {
         if (x == null) {
             x = new Node<>();
         }
-        //
         if (d == key.length()) {
             x.values.add(val);
             return x;
         } else {
-            //
             char c = key.charAt(d);
             x.children[c] = this.put(x.children[c], key, val, d + 1);
             return x;
@@ -87,7 +84,7 @@ public class TrieImpl<Value> implements Trie<Value> {
         Node<Value> node = root;
         for (int i = 0; i < key.length(); i++) {
             char ch = key.charAt(i);
-            int index = ch; // Convert character to index //tiene conto delle capital letters??
+            int index = ch;
             if (node.children[index] == null) {
                 return values;
             }
@@ -115,14 +112,13 @@ public class TrieImpl<Value> implements Trie<Value> {
         Node<Value> node = root;
         for (int i = 0; i < prefix.length(); i++) {
             char ch = prefix.charAt(i);
-            int index = ch; // Convert character to index //tiene conto delle capital letters??
+            int index = ch; // Convert character to index
             node = node.children[index];
             if (node == null) {
                 return myList;
             }
         }
         collectAllWithPrefix(node, myList);
-        //System.out.println(myList.size());
         myList.sort(comparator);
         return myList;
     }
@@ -197,7 +193,7 @@ public class TrieImpl<Value> implements Trie<Value> {
             node.values.clear(); // Clear values at the current node
         }
         return deletedValues;
-    }//ricorda di cambiare un po il tutto per evitare il plagio
+    }
 
     /**
      * Remove the given value from the node of the given key (do not remove the value from other nodes in the Trie)
