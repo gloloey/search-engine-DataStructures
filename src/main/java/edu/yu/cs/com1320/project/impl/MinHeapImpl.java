@@ -14,13 +14,11 @@ public class MinHeapImpl<E extends Comparable<E>> extends MinHeap<E> {
     @Override
     public void reHeapify(E element) {
         int index = getArrayIndex(element);
-        // Percolate the element up or down depending on its new priority
         upHeap(index);
         downHeap(index);
     }
 
     @Override
-    //RIMETTILO PROTECTED
     protected int getArrayIndex(E element) {
         for (int i = 1; i <= count; i++) {
             if (elements[i].equals(element)) {
@@ -28,7 +26,6 @@ public class MinHeapImpl<E extends Comparable<E>> extends MinHeap<E> {
             }
         }
         throw new NoSuchElementException("Element not found in the heap");
-        // Element not found
     }
 
     @Override
